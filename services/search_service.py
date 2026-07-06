@@ -31,6 +31,8 @@ def search_songs(query: str) -> list[dict]:
                 Song.artist.ilike(f"%{query}%"),
             )
         )
+       # ✅ (BUG FIX 3: Add .distinct() to avoid duplicates when joining with tags) 
+        .distinct()
         .all()
     )
 
