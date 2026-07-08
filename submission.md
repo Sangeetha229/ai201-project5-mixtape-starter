@@ -142,7 +142,7 @@ POST /songs/<song_id>/listen
 
 ```json
 {
-  "user_id": "<user_id>"
+  "user_id": "841520f8-8825-4c7e-9c1d-88a48417e98c"
 }
 ```
 
@@ -185,10 +185,10 @@ routes/songs.py
         |
         | POST /songs/<song_id>/listen
         ↓
-record_listening_event()
+services/streak_service.py
         |
         ↓
-services/streak_service.py
+record_listening_event()
         |
         ↓
 update_listening_streak()
@@ -232,7 +232,7 @@ Removed the weekday dependency and used only the number of days between listenin
 
 The updated logic checks:
 
-```python
+```python```
 days_since_last == 1
 ```
 
@@ -359,12 +359,12 @@ I traced the request flow starting from the API endpoint:
 
 ```
 routes/feed.py
+        |  GET /feed/<user_id>/listening-now
+        v
+services/feed_service.py
         |
         v
 get_friends_listening_now(user_id)
-        |
-        v
-services/feed_service.py
 ```
 
 I inspected the filtering logic inside `get_friends_listening_now()`.
@@ -511,7 +511,7 @@ Crown Heights Anthem
 
 3. Called the search endpoint:
 
-```
+```http
 GET /songs/search?q=rap
 ```
 
@@ -560,7 +560,7 @@ I traced the request flow from the API endpoint:
 ```
 routes/songs.py
         |
-        | search()
+        | GET /songs/search?q=rap
         |
         v
 services/search_service.py
@@ -694,7 +694,7 @@ The API now returns one result per song record.
 
 Request:
 
-```
+```http
 GET /songs/search?q=rap
 ```
 
@@ -719,7 +719,7 @@ Example:
 
 Request:
 
-```
+```http
 GET /songs/search?q=Free
 ```
 
@@ -743,7 +743,7 @@ Confirmed searching by title or artist still returns songs that do not have tag 
 
 Checked:
 
-```
+```http
 GET /songs/<song_id>
 POST /songs/<song_id>/rate
 POST /songs/<song_id>/listen
@@ -772,7 +772,7 @@ The bug was caused by a many-to-many `song_tags` join producing duplicate rows f
 
 2. Used Postman to rate an existing song:
 
-```
+```http
 POST /songs/<song_id>/rate
 ```
 
@@ -789,7 +789,7 @@ Request body:
 
 4. Checked notifications for the original song owner:
 
-```
+```http
 GET /users/<song_owner_id>/notifications
 ```
 
@@ -818,8 +818,7 @@ I traced the request flow from the API endpoint:
 ```
 routes/songs.py
         |
-        v
-rate()
+        v  POST /songs/<song_id>/rate
         |
         v
 services/notification_service.py
@@ -832,10 +831,7 @@ I then compared the rating flow with the playlist addition flow:
 
 ```
 routes/playlists.py
-        |
-        v
-add_song()
-        |
+        |   POST /playlists/<playlist_id>/songs
         v
 services/notification_service.py
         |
@@ -932,8 +928,7 @@ After applying the fix, I verified:
 ### 1. Rating functionality still works
 
 Checked:
-
-```
+```http
 POST /songs/<song_id>/rate
 ```
 
@@ -948,7 +943,7 @@ Result:
 
 Checked:
 
-```
+```http
 GET /users/<song_owner_id>/notifications
 ```
 
@@ -962,7 +957,7 @@ Result:
 
 Verified:
 
-```
+```http
 POST /playlists/<playlist_id>/songs
 ```
 
@@ -993,7 +988,7 @@ Song owner notified
 ## Issue #5 — Last song missing in playlist (`playlist_service.py`)
 
 ### How to reproduce
-```
+```http
 GET /playlists/<playlist_id>/songs
 ```
 
